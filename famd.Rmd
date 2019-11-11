@@ -1,0 +1,943 @@
+---
+title: "Factor analysis of mixed data"
+output: 
+  flexdashboard::flex_dashboard:
+    source_code: embed
+    social: menu
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(knitr)
+library(kableExtra)
+
+knitr::opts_chunk$set(cache = TRUE, echo=F, eval=T, warning = FALSE, message = FALSE)
+```
+
+
+
+
+Workflow {.storyboard}
+=========================================
+
+Inputs {.sidebar}
+-------------------------------------
+
+Dimensionality reduction using principal component methods is a very handy tool for identifying relationships amongst variables and hidden patterns in a dataset. 
+
+Principal component analysis (PCA) is arguably the most commonly known, but it is limited by its use for datasets containing **only** continuous variables. As real-world data likely contain a combination of continuous and categorical variables, **factor analysis of mixed data (FAMD)** is an extremely valuable alternative approach to be familiar with. FAMD can be seen as combining PCA for continuous variables and multiple correspondence analysis (MCA) for categorical variables. 
+
+Here, we will perform FAMD on the [IBM Telco customer churn dataset](https://developer.ibm.com/patterns/predict-customer-churn-using-watson-studio-and-jupyter-notebooks/), to gain insights into the relationships between various aspects of customer behaviour. This will be a toy example of how FAMD can be used to derive actionable business insights.
+
+
+
+### **Calculate & inspect principal dimensions** <br><br>Dimensionality reduction through creating a new feature space {data-commentary-width=500}
+
+```{r, fig.width=7}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+library(grid)
+
+## Import data
+df <- read.csv('https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv')
+
+## FAMD
+## Set the target variable "Churn" as a supplementary variable
+res.famd <- FAMD(df, 
+                 sup.var = 20,  
+                 graph = FALSE, 
+                 ncp=25)
+
+## Inspect principal dimensions
+ev <- data.frame(get_eigenvalue(res.famd))
+
+## Visualize
+x <- fviz_eig(res.famd, ncp=7, choice='eigenvalue', geom='line') +
+    theme(text = element_text(size=8), 
+          plot.title = element_blank(),
+          axis.text.x = element_text(size=7), 
+          axis.text.y = element_text(size=7)) 
+
+y <- fviz_eig(res.famd, ncp=7) +
+    theme(text = element_text(size=8), 
+          plot.title = element_blank(),
+          axis.text.x = element_text(size=7), 
+          axis.text.y = element_text(size=7)) 
+  
+grid.arrange(x, y, ncol=2)
+```
+
+***
+
+ 
+<div class="container" style='width:480px; padding-left: 10px; padding-right: 10px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link active" data-toggle="tab" href="#desc_pd">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_pd">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+<div id="desc_pd" class="container tab-pane active" style='width:470px; margin: auto; padding-left:10px; padding-right: 20px'>
+<br>
+As an **important note**, *standardization* of the numeric variables is critical for valid results from FAMD. This is done automatically by the three packages currently available for FAMD: `FactorMineR`, `PCAmixdata` and `prince`, so it will not be done beforehand.  
+
+We can first inspect the calculated principal dimensions (PDs), which are linear combinations of the original variables to better account for the variance in the dataset. Inspecting the eigenvalue and percentage variance explained by each PD, using scree plots, can provide insights into the "informativeness" of the original variables. 
+
+An eigenvalue >1 indicates that the PD accounts for more variance than one of the original variables in **standardized** data (N.B. This holds true **only** when the data are standardized.). This is commonly used as a cutoff point for which PDs are retained to be used in further analysis. The scree plot on the left indicates that only the first four PDs account for more variance than each of the original variables, whereas the one on the right shows that together they account for only 46.7% of the total variance in the data set. This suggests that this dataset is quite complex, potentially due to 1) the relationships between the variables being non-linear, and/or 2) some factors (variables) that can account for variance in this dataset are not included in this analysis.
+
+All in all, FAMD can be a great first step in sizing up a dataset, which we will further demonstrate in the next slide.
+ 
+</div>
+<div id="code_pd" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+library(grid)
+
+## FAMD
+res.famd <- FAMD(df)
+
+## Visualize
+a <- fviz_eig(res.famd,  
+              choice='eigenvalue', 
+              geom='line') 
+
+b <- fviz_eig(res.famd) 
+  
+grid.arrange(a, b, ncol=2)
+```
+</div>
+</div>
+</div>
+
+ 
+### **Plot individual observations in new feature space** <br><br>Exploring "learnable" patterns in the dataset {data-commentary-width=500}
+
+```{r}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(plotly)
+
+## Import data
+df <- read.csv('https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv')
+
+## FAMD
+res.famd <- FAMD(df, 
+                 sup.var = 20,  
+                 graph = FALSE, 
+                 ncp=25)
+
+## Concate original data with coordinates for 
+## the first three principal dimensions
+val_df <- as.data.frame(res.famd$ind)
+
+x <- cbind(df, val_df[1:3])
+
+## Plot
+plot_ly(x, x = ~coord.Dim.1, y = ~coord.Dim.2, z = ~coord.Dim.3, color = ~Churn, colors = c('#FF0000', '#3CB371')) %>%
+  add_markers(size=3, opacity = 0.2) %>%
+  layout(scene = list(xaxis = list(title = 'Principal dimension 1'),
+                     yaxis = list(title = 'Principal dimension 2'),
+                     zaxis = list(title = 'Principal dimension 3'))) 
+```
+
+
+***
+
+<div class="container" style='width:480px; padding-left: 10px; padding-right: 10px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link active" data-toggle="tab" href="#desc_ind">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_ind">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+<div id="desc_ind" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px'>
+<br>
+We can now visualize the individual data points in the new feature space created by the first three, and thus "most informative", PDs. This is particularly useful when we want to see how "separable" groups of data points are, in our case in terms of customer churn, ahead of building supervised predictive models. To this end, the points are coloured by the variable "Churn".
+
+This nifty 3D scatter plot can be dragged around to inspect the points from different angles, so give it a try!
+
+As individuals with similar profiles, *i.e.* personal characteristics and purchasing behaviour, are close to each other on the figure, the large overlap between the “Churn” and “No churn” populations of customers suggests that if there are significant/meaningful differences between the two populations, they are likely complex and non-linear. It is also possible that the variables we have in this dataset are not suited or sufficient to capture the difference between customers who churn and those who do not. So, the overlapping distributions of the two populations suggest that we are probably not going to get very good separation of churned and not churned customers using a predictive model like a random forest classifier, as least with the data as it is now. 
+
+This is a good example of how performing dimensionality reduction of a dataset can help us see how “successful” other analyses could be on it.
+</div>
+
+
+<div id="code_ind" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(plotly)
+
+## FAMD 
+res.famd <- FAMD(df)
+
+## Concate original data with coordinates for 
+## the first three principal dimensions
+val_df <- as.data.frame(res.famd$ind)
+
+x <- cbind(df, val_df[1:3])
+
+## Plot
+plot_ly(x, 
+        x = ~coord.Dim.1, 
+        y = ~coord.Dim.2, 
+        z = ~coord.Dim.3, 
+        color = ~Churn) 
+```
+</div>
+</div>
+</div>
+
+
+
+### **Correlation circle** <br><br> To examine relationship between quantitative variables {data-commentary-width=600}
+
+```{r}
+## Import library
+library(PCAmixdata)
+
+## Import data
+df <- read.csv('https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv')
+
+## Drop the TotalCharges variable, as it is a product of MonthlyCharges and Tenure
+df <- within(df, rm('TotalCharges'))
+
+## Split quantitative and qualitative variables
+split <- splitmix(df)
+
+## FAMD
+res.pcamix <- PCAmix(X.quanti=split$X.quanti,  
+                     X.quali=split$X.quali, 
+                     rename.level=TRUE, 
+                     graph=FALSE, 
+                     ndim=25)
+
+## Plotting
+p <- plot(res.pcamix,
+     choice="cor", 
+     cex=0.6, main=' ') 
+```
+
+***
+ 
+<div class="container" style='width:580px; padding-left: 10px; padding-right: 10px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link active" data-toggle="tab" href="#background_circ">Background</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link active" data-toggle="tab" href="#desc_circ">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_circ">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+<div id="background_circ" class="container tab-pane active" style='width:570px; padding-left:10px; padding-right: 20px'>
+<br>
+As PDs are linear combinations of the original variables, understanding their relationships can help to identify which variables are the most important in describing the total variance in a dataset.
+
+The **factor loading** of a variable describes the correlation, *i.e.* information shared, between it and a given PD. By squaring the factor loading for a variable, we also get its **squared loading** (which you may see also called *squared cosine* or *cos2*). This provides a measure of the proportion of variance in a variable that is captured by a particular PD. For each variable, the sum of its squared loading across all PDs equals to 1.
+
+One way to depict this relationship is using **correlation circles**, which plot *only* continuous variables using their loadings for any given two PDs as coordinates. Recall that the sum of squared loadings for a given variable across all PDs equals 1. So if a given variable can be perfectly represented by only the two PDs plotted, then:  
+
+$$
+(factor\,  loading_{PD1})^{2} + (factor\,  loading_{PD2})^{2} = 1
+$$
+ 
+
+When plotted using factor loading on each PD as coordinates in a Cartesian grid, this is the same as:
+
+$$
+x^{2} + y^{2} = 1
+$$
+
+The circle in the plot has a radius of 1, meaning that the projection endpoint for any such variable would be positioned on the circle.  
+
+</div>
+<div id="desc_circ" class="container tab-pane" style='width:570px; padding-left:10px; padding-right: 20px'>
+<br>
+In this correlation circle, we see that PD1 and PD2 together do a pretty good job of capturing information contained in the `MonthlyCharges` variable, as its endpoint is very close to the circle. Conversely, if more PDs are needed to capture the information contained in a variable, then the length of it projection would be less than 1 and the endpoint would be positioned inside the circle. Projection for the `Tenure` variable lies closer to the origin than that of `MonthlyCharges`, indicating that more than PD1 and PD2 are needed to completely represent the information it contains. Therefore, the closer a variable is to the circle, then more important it is to interpreting the PDs involved.
+
+In addition, variables on opposite sides of the origin are inversely correlated, whereas those on the same side are positively correlated. It makes intuitive sense that `MonthlyCharges` and `Tenure` are inversely related, as customers that pay a high monthly fee likely try to change providers.
+
+</div>
+
+
+<div id="code_circ" class="container tab-pane fade"  style='width:570px; padding-left:10px; padding-right: 20px'>
+<br>
+```{r, eval=F, echo=T}
+## Import library
+library(PCAmixdata)
+
+## Split quantitative and qualitative variables
+split <- splitmix(df)
+
+## FAMD
+res.pcamix <- PCAmix(X.quanti=split$X.quanti,  
+                     X.quali=split$X.quali)
+
+## Plotting
+plot(res.pcamix, choice="cor") 
+```
+</div>
+</div>
+</div>
+
+ 
+
+### **Squared loading plot** <br><br> To visualize role of *all* variables in accounting for overall variation in a dataset {data-commentary-width=550}
+
+
+```{r}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+
+## Import data
+df <- read.csv('https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv')
+
+## principal dimensionA
+res.famd <- FAMD(df, 
+                 sup.var = 20, 
+                 graph = FALSE, 
+                 ncp=25)
+
+## Plot
+## Colour indiv obs by their squared loading
+p <- fviz_famd_var(res.famd, 'var', axes = c(1, 2),
+                     labelsize = 3, pointsize = 1,
+                     col.var = 'cos2',   
+                     gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+                     repl=TRUE) +
+                     xlim(-0.1, 0.85) + ylim (-0.1, 0.70) + 
+          theme(text = element_text(size=8), 
+                plot.title = element_blank(),
+                axis.text.x = element_text(size=7), 
+                axis.text.y = element_text(size=7)) 
+
+
+## Add the supplementary variable, Churn, to the plot
+fviz_add(p, res.famd$var$coord.sup,
+         geom = c("arrow", "text"),
+         labelsize = 3, pointsize = 1,
+         col.var = 'cos2',
+         color = "blue", 
+         repel = TRUE)
+```
+
+***
+
+
+<div class="container" style='width:530px; padding-left: 10px; padding-right: 20px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link" data-toggle="tab" href="#background_cos2">Background</a>
+</li>
+
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#desc_cos2">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_cos2">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+<div id="background_cos2" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right:20px;'>
+<br>
+**Squared loading plots** allow us to visualize qualitative and quantitative variables **together** in the new feature space. The implementation provided by the `PCAmixdata` package has an added benefit of allowing the `Churn` variable to be included as a supplementary variable, thereby seeing its relationship with other variables without including it in the original analysis. This is useful as most downstream analyses would try to predict `Churn`.
+
+As an aside, unlike correlation circles, this plot depicts only positive values on the x- and y-axis. According to the authors of the package, the coordinates are to be interpreted as measuring “the links (signless) between variables and principal components”. This may be interpreted as the coordinates of each variable being the absolute value its squared loading.
+</div>
+
+<div id="desc_cos2" class="container tab-pane fade" style='width: 520px; padding-left:10px; padding-right:20px;'>
+<br>
+Interpretation of the squared loading plot is very similar to that of the correlation circle. We see several interesting things:
+
+1. Consistent with what we saw in the correlation circle, `MonthlyCharges` is more closely correlated with PD1 than with PD2, whereas `Tenure` is described by a more even combination of PD1 and PD2
+
+2. Being furthest from the origin, the variables `Contract`, `InternetService` and `MonthlyCharges` have the highest squared loading values and so are more important in explaining the variance captured by PD1 and PD2 than variables clustered near the origin, such as `Gender`, `PhoneService`, and `SeniorCitizen`
+
+3. The variable of interest, `Churn`, overlaps with the y-axis, indicating that PD2 alone perfectly captures all the variation contained in this variable
+
+</div>
+
+<div id="code_cos2" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right:20px;'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+
+## principal dimensionA
+res.famd <- FAMD(df)
+
+## Plot
+## Colour indiv obs by their squared loading
+p <- fviz_famd_var(res.famd, 'var', 
+                   axes = c(1, 2),
+                   col.var = 'cos2')
+
+## Add the supplementary variable, Churn
+fviz_add(p, res.famd$var$coord.sup
+         col.var = 'cos2')
+```
+</div>
+
+</div>
+</div>
+
+
+
+
+
+
+### **Variable contribution** <br><br> Contributions of variables to principal dimensions {data-commentary-width=550}
+
+```{r, fig.width=6.5, fig.height=3, fig.align='center'}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+
+## Plot
+a <- fviz_contrib(res.famd, choice = "var", axes = 1, top = 10)
+
+b <- fviz_contrib(res.famd, choice = "var", axes = 2, top = 10)
+
+grid.arrange(a, b, nrow=1)
+
+fviz_contrib(res.famd, choice = "var", axes = 1:2, top = 15)
+```
+
+***
+
+<div class="container" style='width:530px; padding-left: 10px; padding-right: 20px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link" data-toggle="tab" href="#background_contrib">Background</a>
+</li>
+
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#desc_contrib">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_contrib">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+<div id="background_contrib" class="container tab-pane active" style='width:520px;  padding-left:10px; padding-right: 20px;'>
+<br>
+Whereas factor loading and squared loading measure how well a given PD “describes” variation capture in a variable, **contribution** describes the converse, namely how much a variable accounts for the total variation captured by a given PD. 
+
+It is important to compare the squared loading and contribution for each variable to critically assess its relationship with a given PD, as a variable that is important for a PD may not be well represented by the same PD, which warrants very different interpretation as compared to the converse.
+
+</div>
+
+<div id="desc_contrib" class="container tab-pane" style='width:520px;  padding-left:10px; padding-right: 20px;'>
+<br>
+Top contributing variables to the first few PDs can provide insights into which variables underlie variations in the dataset, and may help with feature selection for downstream analyses. The red dashed line indicates the expected average contribution (100% contribution divided the total number of variables avaiable in the dataset). So variables meeting the cut-off would be considered as important in contributing to the PD.
+
+From the variables that meet the cut-off, we can glean some insights into what are the most important variables in this dataset, such as `MonthlyCharges`, `InternetService` and `Tenure`. So, FAMD can also be a handy tool for variable selection.
+
+</div>
+
+
+<div id="code_contrib" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right: 20px;'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+
+## FAMD
+res.famd <- FAMD(df)
+
+## Plots
+a <- fviz_contrib(res.famd, 
+                  choice = "var", 
+                  axes = 1)
+
+b <- fviz_contrib(res.famd, 
+                  choice = "var", 
+                  axes = 2)
+
+grid.arrange(a, b, nrow=1)
+
+fviz_contrib(res.famd, 
+             choice = "var", 
+             axes = 1:2)
+```
+</div>
+</div>
+</div>
+
+
+
+### **Level map** <br><br> More granular insights into relationships amongst variables {data-commentary-width=600}
+
+```{r}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(plyr)
+library(dplyr)
+library(arulesCBA) 
+
+## Import data
+df <-read.csv("https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv")
+
+## Discretize "MonthlyCharges" with respect to "Churn"/"No Churn" label and assign to new column in dataframe
+df$Binned_MonthlyCharges <- discretizeDF.supervised(Churn ~ ., df[, c('MonthlyCharges', 'Churn')], method='mdlp')$MonthlyCharges
+
+## Rename the levels based on knowledge of min/max monthly charges
+df$Binned_MonthlyCharges = revalue(df$Binned_MonthlyCharges, 
+                                   c("[-Inf,29.4)"="$0-29.4", 
+                                     "[29.4,56)"="$29.4-56", 
+                                     "[56,68.8)"="$56-68.8", 
+                                     "[68.8,107)"="$68.8-107", 
+                                     "[107, Inf]" = "$107-118.75"))
+
+## Discretize "Tenure" with respect to "Churn"/"No Churn" label and assign to new column in dataframe
+df$Binned_Tenure <- discretizeDF.supervised(Churn ~ ., 
+                                            df[, c('Tenure', 'Churn')], 
+                                            method='mdlp')$Tenure
+
+## Rename the levels based on knowledge of min/max tenures
+df$Binned_Tenure = revalue(df$Binned_Tenure, 
+                           c("[-Inf,1.5)"="1-1.5m", 
+                             "[1.5,5.5)"="1.5-5.5m",
+                             "[5.5,17.5)"="5.5-17.5m",
+                             "[17.5,43.5)"="17.5-43.5m",
+                             "[43.5,59.5)"="43.5-59.5m",
+                             "[59.5,70.5)"="59.5-70.5m",
+                             "[70.5, Inf]"="70.5-72m"))
+
+## MCA, with "Churn" set as the supplementary variable
+res.mca <- MCA(df, quanti.sup=c(5, 18, 19), quali.sup=c(20), graph = FALSE)
+                 
+## Plot relationship between levels of categorical variables obtained from MCA
+fviz_mca_var(res.mca, col.var = "cos2", 
+            gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+            labelsize = 3, pointsize = 1, repel=TRUE) +
+             xlim(-1.5, 2) + ylim (-1.0, 1.25) + theme(text = element_text(size=8), 
+          plot.title = element_blank(),
+          axis.text.x = element_text(size=7), 
+          axis.text.y = element_text(size=7)) 
+```
+
+***
+
+<div class="container" style='width:550px; padding-left: 10px; padding-right: 20px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link" data-toggle="tab" href="#background_level">Background</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#desc_level">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_level">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+
+<div id="background_level" class="container tab-pane active" style='width:540px; padding-left:10px; padding-right: 20px;'>
+<br>
+We can further visualize the relationships between possible values of variables in **level maps**. This allows us to get much more fine-grained insights, as for example "Senior Citizen" and "Not Senior Citizen" carry very different meanings, which are lost when lumped together into a single variable. 
+
+For continuous variables to be used in this analysis, they need to be discretized and made into "pseudo" categorical variables. In this case, as I am interested in getting the most informative value bins with respect to the outcome variable of interest, `Churn`, I used the supervised discretization function implemented by the `arulesCBA` package (see more about it [here](http://rpubs.com/nchelaru/eda)). 
+
+
+</div>
+
+<div id="desc_level" class="container tab-pane fade" style='width:540px; padding-left:10px; padding-right: 20px;'>
+<br>
+There are lots of information in this plot! Interpretation of the level map is similar to that of correlation circles and squared loading plots:
+
+<ul style="list-style-type:circle;">
+<li>
+Values that are situated close to each other are more closely related
+</li>
+
+<li>
+Values that are closer to the origin are less important in accounting for the variance in the dataset than those farther away
+</li>
+
+<li>
+Values that are on opposite sides of the origin are negatively correlated, whereas those on the same side are positively correlated
+</li>
+
+</ul>
+
+Briefly, since we are most interested in Churn, we can see that whereas have a month-to-month plan and paying by electronic cheque are associated with customers who churn, having one-year contract and not being senior citizen are associated with those who do not. 
+
+These are actionable insights to inform marketing campaigns and customer retention strategies.
+</div>
+
+
+<div id="code_level" class="container tab-pane fade"  style='width:540px;  padding-left:10px; padding-right: 20px;'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(FactoMineR)
+library(factoextra)
+library(plyr)
+library(dplyr)
+library(arulesCBA)
+
+## Discretize "Tenure" with respect to "Churn"/"No Churn"
+df$Binned_Tenure <- discretizeDF.supervised(Churn ~ .,
+                                            df[, c('Tenure', 'Churn')],
+                                            method = 'mdlp')$Tenure
+
+## MCA, with "Churn" set as the supplementary variable
+res.mca <- MCA(df,
+               quanti.sup = c(5, 18, 19),
+               quali.sup = c(20))
+
+## Plot relationship between levels of categorical variables obtained from MCA
+fviz_mca_var(res.mca, col.var = "cos2") 
+```
+</div>
+
+</div>
+</div>
+
+
+
+### **Varimax rotation** <br><br> To further facilitate interpretation of the relationships between variables and principal dimensions {data-commentary-width=500}
+
+
+```{r, fig.height=8, fig.width=8}
+## Import library
+library(PCAmixdata)
+
+## Import data
+df <- read.csv('https://github.com/nchelaru/data-prep/raw/master/telco_cleaned_renamed.csv')
+
+## Drop the TotalCharges variable, as it is a product of MonthlyCharges and Tenure
+df <- within(df, rm('TotalCharges'))
+
+## Split quantitative and qualitative variables
+split <- splitmix(df)
+
+## FAMD
+res.pcamix <- PCAmix(X.quanti=split$X.quanti,  
+                     X.quali=split$X.quali, 
+                     rename.level=TRUE, 
+                     graph=FALSE, 
+                     ndim=25)
+
+## Apply varimax rotation to the first two PCs
+res.pcarot <- PCArot(res.pcamix,
+                     dim=2,
+                     graph=FALSE)
+
+## Plot
+plot(res.pcarot, 
+     choice="sqload", 
+     coloring.var=TRUE,
+     axes=c(1, 2), leg=TRUE, 
+     posleg="topright", main=' ', 
+     xlim=c(0, 0.8), ylim=c(0, 0.6), 
+     cex=0.8)
+```
+
+
+
+***
+
+
+<div class="container" style='width:480px; padding-left: 10px; padding-right: 10px; padding-right: 20px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link" data-toggle="tab" href="#desc_rotate">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_rotate">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+
+<div id="desc_rotate" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px;'>
+<br>
+To further facilitate interpretation of the relationships between variables and PCs, additional rotation can be applied to PCs to result in high factor loadings for a few variables and low factor loadings for the rest. In other words, a small number of variables will become highly correlated with each PC. The most common form of rotation is varimax rotation, a generalized form of which is implemented in the `PCAmixdata` package for mixed data. To learn more, here is an excellet explanation on the [stats StackExchange](https://stats.stackexchange.com/questions/151653/what-is-the-intuitive-reason-behind-doing-rotations-in-factor-analysis-pca-how).
+
+Here we see a slightly different version of the squared loading plot from before. What is different here is that there is higher factor loading of `MonthlyCharges` and `InternetService` for the rotated PD1, and `Tenure` and `Contract` for the rotated PD2 (as their projections are more closely aligned either axis). This indicates these four variables are the most important in accounting for overall variance in the entire dataset.
+</ul>
+</div>
+
+
+<div id="code_rotate" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px;'>
+<br>
+```{r, eval=F, echo=T}
+## Import library
+library(PCAmixdata)
+
+## Split quantitative and qualitative variables
+split <- splitmix(df)
+
+## FAMD
+res.pcamix <- PCAmix(X.quanti=split$X.quanti,  
+                     X.quali=split$X.quali)
+
+## Apply varimax rotation to the first two PCs
+res.pcarot <- PCArot(res.pcamix, dim=2,
+                     graph=FALSE)
+
+## Plot
+plot(res.pcarot, choice="sqload", 
+     coloring.var=TRUE, axes=c(1, 2))
+```
+</div>
+
+</div>
+</div>
+
+
+
+
+### **Hierarchical clustering** <br><br> Unsupervised clustering based on principal dimensions {data-commentary-width=500}
+ 
+
+```{r}
+## Hierachical clustering
+res.hcpc <- HCPC(res.famd, nb.clust=-1, graph = FALSE)
+
+## Plot
+fviz_cluster(res.hcpc, geom = "point", main = "Factor map") +
+  theme(plot.title = element_blank(),
+          axis.text.x = element_text(size=4), 
+          axis.text.y = element_text(size=4))
+```
+
+***
+
+
+<div class="container" style='width:480px; padding-left: 10px; padding-right: 10px; padding-right: 20px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link" data-toggle="tab" href="#desc_hc">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_hc">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+
+<div id="desc_hc" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px;'>
+<br>
+As principal components (PCs) are essentially “synthetic” variables that summarize the most important sources of variations in the data, they are very useful in reducing noise and redundancy in a dataset that in turn helps to reveal its inherent structure. One way to take this one step further is by hierarchically clustering the individual data points by their "position" in the principal dimension feature space. The implementation by the `FactoMineR` package uses the Ward's criterion to carry out hierarchical clustering.
+
+Doing this on our Telco customer churn data reveals three partially overlapping clusters, each of which have some proportion of churned/not churned customers. This further supports the idea that the customers do not divide cleanly by that categorisation, instead by some complex interaction of multiple factors. 
+
+In the next slide, we will generate some summary visualizations to see how the clusters differ in terms of customer demographics and purchasing behaviour.
+
+</div>
+
+<div id="code_hc" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px;'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(FactoMineR)
+
+## principal dimensionA
+res.famd <- FAMD(df, sup.var = 20)
+
+## Hierachical clustering
+res.hcpc <- HCPC(res.famd, nb.clust=-1)
+
+## Plot
+fviz_cluster(res.hcpc, geom = "point")
+```
+</div>
+
+</div>
+</div>
+
+
+ 
+
+### **Examine clusters**<br><br>Explore characteristics of clusters {data-commentary-width=550}
+
+```{r cache = TRUE}
+## Import libraries
+library(autoEDA)
+library(svglite)
+library(htmlwidgets)
+library(slickR)
+library(shiny)
+
+## Rename cluster column
+names(res.hcpc$data.clust)[names(res.hcpc$data.clust) == 'clust'] <- 'Cluster'
+
+## autoEDA 
+auto_res <- autoEDA(res.hcpc$data.clust, 
+                    y = "Cluster", returnPlotList = TRUE,
+                    plotCategorical = "groupedBar", 
+                    plotContinuous = "histogram", 
+                    bins = 30, rotateLabels = TRUE, 
+                    color = "#26A69A", verbose = FALSE) 
+
+## Create list of autoEDA figures converted to SVG
+plotsToSVG <- list()
+
+i <- 1
+
+for (v in auto_res$plots) {
+  
+  x <- xmlSVG({show(v)}, standalone=TRUE) 
+  
+  plotsToSVG[[i]] <- x
+  
+  i <- i + 1
+  
+}
+
+## Custom function needed to render SVGs in Chrome/Firefox
+hash_encode_url <- function(url){
+  gsub("#", "%23", url)
+}
+
+## Pass list of figures to SlickR
+s.in <- sapply(plotsToSVG, function(sv){hash_encode_url(paste0("data:image/svg+xml;utf8,",as.character(sv)))})
+
+Sys.sleep(4)
+
+slickR(s.in, slideId = 'ex4', slickOpts = list(dots=F, arrows=F, autoplay=T, adaptiveWidth=TRUE, adaptiveHeight=TRUE), height='525px')
+
+```
+
+***
+
+
+<div class="container" style='width:530px; padding-left: 10px; padding-right: 10px; padding-right: 20px;'>
+<!-- Nav tabs -->
+<ul class="nav nav-pills nav-justified" role="tablist">
+
+<li class="nav-item active">
+<a class="nav-link" data-toggle="tab" href="#desc_slider">Description</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" data-toggle="tab" href="#code_slider">General workflow</a>
+</li>
+
+</ul>
+
+<!-- Tab panes -->
+<div class="tab-content">
+
+<div id="desc_slider" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right: 20px;'>
+<br>
+The automated exploratory data analysis package `autoEDA` is very useful for generating summary visualizations for each variable in a given dataset with respect to a target variable of interest. 
+
+In our case, we want to see the distribution of values for each variable in each of the three clusters generated using hierarchical clustering based on FAMD. We see that each of the clusters have a different proportion of churned customers, with clusters 1 and 3 having very few churned customers, and cluster 2 being a more even split. Comparing the demographic characteristics and purchasing behaviours of these clusters can generate more nuanced insights into what differentiates loyal customers from those who are much more "on the fence".
+
+As a side note, here you see a slider generated using the `slickR` package, which is a nifty way to show multiple figures when space is limited. Learn more about it at its Github repo [here](https://github.com/metrumresearchgroup/slickR).
+
+</div>
+
+<div id="code_slider" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right: 20px;'>
+<br>
+```{r, eval=F, echo=T}
+## Import libraries
+library(autoEDA)
+
+## autoEDA 
+auto_res <- autoEDA(res.hcpc$data.clust, y = "clust", 
+                    returnPlotList = TRUE,
+                    plotCategorical = "groupedBar", 
+                    bins = 30, rotateLabels = TRUE, 
+                    color = "#26A69A", verbose = FALSE) 
+
+## Plot
+auto_res$plots
+```
+
+</div>
+
+</div>
+</div>
+
+  
+
+Session info
+=========================================
+
+Column 
+---------------------------------------------
+
+```{r}
+sessionInfo()
+```
