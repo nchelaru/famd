@@ -73,12 +73,12 @@ grid.arrange(x, y, ncol=2)
 ***
 
  
-<div class="container" style='width:480px; padding-left: 10px; padding-right: 10px;'>
+<div class="container" style='width:480px; padding-left: 10px; padding-right: 10px; align: center;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
-<a class="nav-link active" data-toggle="tab" href="#desc_pd">Description</a>
+<a class="nav-link active" data-toggle="tab" href="#desc_pd" >Description</a>
 </li>
 
 <li class="nav-item">
@@ -89,7 +89,7 @@ grid.arrange(x, y, ncol=2)
 
 <!-- Tab panes -->
 <div class="tab-content">
-<div id="desc_pd" class="container tab-pane active" style='width:470px; margin: auto; padding-left:10px; padding-right: 20px'>
+<div id="desc_pd" class="container tab-pane active" style='width:470px; margin: auto;  padding-right: 20px'>
 <br>
 As an **important note**, *standardization* of the numeric variables is critical for valid results from FAMD. This is done automatically by the three packages currently available for FAMD: `FactorMineR`, `PCAmixdata` and `prince`, so it will not be done beforehand.  
 
@@ -100,7 +100,7 @@ An eigenvalue >1 indicates that the PD accounts for more variance than one of th
 All in all, FAMD can be a great first step in sizing up a dataset, which we will further demonstrate in the next slide.
  
 </div>
-<div id="code_pd" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px'>
+<div id="code_pd" class="container tab-pane fade"  style='width:470px;  margin: auto; padding-right: 20px'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
@@ -162,7 +162,7 @@ plot_ly(x, x = ~coord.Dim.1, y = ~coord.Dim.2, z = ~coord.Dim.3, color = ~Churn,
 
 <div class="container" style='width:480px; padding-left: 10px; padding-right: 10px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link active" data-toggle="tab" href="#desc_ind">Description</a>
@@ -250,7 +250,7 @@ p <- plot(res.pcamix,
  
 <div class="container" style='width:580px; padding-left: 10px; padding-right: 10px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link active" data-toggle="tab" href="#background_circ">Background</a>
@@ -366,7 +366,7 @@ fviz_add(p, res.famd$var$coord.sup,
 
 <div class="container" style='width:530px; padding-left: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link" data-toggle="tab" href="#background_cos2">Background</a>
@@ -456,7 +456,7 @@ fviz_contrib(res.famd, choice = "var", axes = 1:2, top = 15)
 
 <div class="container" style='width:530px; padding-left: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link" data-toggle="tab" href="#background_contrib">Background</a>
@@ -580,7 +580,7 @@ fviz_mca_var(res.mca, col.var = "cos2",
 
 <div class="container" style='width:550px; padding-left: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link" data-toggle="tab" href="#background_level">Background</a>
@@ -610,7 +610,9 @@ For continuous variables to be used in this analysis, they need to be discretize
 
 <div id="desc_level" class="container tab-pane fade" style='width:540px; padding-left:10px; padding-right: 20px;'>
 <br>
-There are lots of information in this plot! Interpretation of the level map is similar to that of correlation circles and squared loading plots:
+There are lots of information in this plot! 
+
+Interpretation of the level map is similar to that of correlation circles and squared loading plots:
 
 <ul style="list-style-type:circle;">
 <li>
@@ -708,7 +710,7 @@ plot(res.pcarot,
 
 <div class="container" style='width:480px; padding-left: 10px; padding-right: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link" data-toggle="tab" href="#desc_rotate">Description</a>
@@ -780,7 +782,7 @@ fviz_cluster(res.hcpc, geom = "point", main = "Factor map") +
 
 <div class="container" style='width:480px; padding-left: 10px; padding-right: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link" data-toggle="tab" href="#desc_hc">Description</a>
@@ -883,7 +885,7 @@ slickR(s.in, slideId = 'ex4', slickOpts = list(dots=F, arrows=F, autoplay=T, ada
 
 <div class="container" style='width:530px; padding-left: 10px; padding-right: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
-<ul class="nav nav-pills nav-justified" role="tablist">
+<ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
 <li class="nav-item active">
 <a class="nav-link" data-toggle="tab" href="#desc_slider">Description</a>
