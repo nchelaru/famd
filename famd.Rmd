@@ -89,7 +89,7 @@ grid.arrange(x, y, ncol=2)
 
 <!-- Tab panes -->
 <div class="tab-content">
-<div id="desc_pd" class="container tab-pane active" style='width:470px; margin: auto;  padding-right: 20px'>
+<div id="desc_pd" class="container tab-pane active" style='width:470px; margin: auto;  padding-right: 20px; font-size:16px;'>
 <br>
 As an **important note**, *standardization* of the numeric variables is critical for valid results from FAMD. This is done automatically by the three packages currently available for FAMD: `FactorMineR`, `PCAmixdata` and `prince`, so it will not be done beforehand.  
 
@@ -100,7 +100,7 @@ An eigenvalue >1 indicates that the PD accounts for more variance than one of th
 All in all, FAMD can be a great first step in sizing up a dataset, which we will further demonstrate in the next slide.
  
 </div>
-<div id="code_pd" class="container tab-pane fade"  style='width:470px;  margin: auto; padding-right: 20px'>
+<div id="code_pd" class="container tab-pane fade"  style='width:470px;  margin: auto; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
@@ -176,7 +176,7 @@ plot_ly(x, x = ~coord.Dim.1, y = ~coord.Dim.2, z = ~coord.Dim.3, color = ~Churn,
 
 <!-- Tab panes -->
 <div class="tab-content">
-<div id="desc_ind" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px'>
+<div id="desc_ind" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 We can now visualize the individual data points in the new feature space created by the first three, and thus "most informative", PDs. This is particularly useful when we want to see how "separable" groups of data points are, in our case in terms of customer churn, ahead of building supervised predictive models. To this end, the points are coloured by the variable "Churn".
 
@@ -188,7 +188,7 @@ This is a good example of how performing dimensionality reduction of a dataset c
 </div>
 
 
-<div id="code_ind" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px'>
+<div id="code_ind" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
@@ -218,7 +218,7 @@ plot_ly(x,
 
 
 
-### **Correlation circle** <br><br> To examine relationship between quantitative variables {data-commentary-width=600}
+### **Correlation circle** <br><br> To examine relationship between quantitative variables {data-commentary-width=650}
 
 ```{r}
 ## Import library
@@ -248,7 +248,7 @@ p <- plot(res.pcamix,
 
 ***
  
-<div class="container" style='width:580px; padding-left: 10px; padding-right: 10px;'>
+<div class="container" style='width:630px; padding-left: 10px; padding-right: 10px;'>
 <!-- Nav tabs -->
 <ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
@@ -268,7 +268,7 @@ p <- plot(res.pcamix,
 
 <!-- Tab panes -->
 <div class="tab-content">
-<div id="background_circ" class="container tab-pane active" style='width:570px; padding-left:10px; padding-right: 20px'>
+<div id="background_circ" class="container tab-pane active" style='width:620px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 As PDs are linear combinations of the original variables, understanding their relationships can help to identify which variables are the most important in describing the total variance in a dataset.
 
@@ -290,7 +290,7 @@ $$
 The circle in the plot has a radius of 1, meaning that the projection endpoint for any such variable would be positioned on the circle.  
 
 </div>
-<div id="desc_circ" class="container tab-pane" style='width:570px; padding-left:10px; padding-right: 20px'>
+<div id="desc_circ" class="container tab-pane" style='width:620px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 In this correlation circle, we see that PD1 and PD2 together do a pretty good job of capturing information contained in the `MonthlyCharges` variable, as its endpoint is very close to the circle. Conversely, if more PDs are needed to capture the information contained in a variable, then the length of it projection would be less than 1 and the endpoint would be positioned inside the circle. Projection for the `Tenure` variable lies closer to the origin than that of `MonthlyCharges`, indicating that more than PD1 and PD2 are needed to completely represent the information it contains. Therefore, the closer a variable is to the circle, then more important it is to interpreting the PDs involved.
 
@@ -299,7 +299,7 @@ In addition, variables on opposite sides of the origin are inversely correlated,
 </div>
 
 
-<div id="code_circ" class="container tab-pane fade"  style='width:570px; padding-left:10px; padding-right: 20px'>
+<div id="code_circ" class="container tab-pane fade"  style='width:620px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import library
@@ -385,14 +385,14 @@ fviz_add(p, res.famd$var$coord.sup,
 
 <!-- Tab panes -->
 <div class="tab-content">
-<div id="background_cos2" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right:20px;'>
+<div id="background_cos2" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right:20px; font-size:16px;'>
 <br>
-**Squared loading plots** allow us to visualize qualitative and quantitative variables **together** in the new feature space. The implementation provided by the `PCAmixdata` package has an added benefit of allowing the `Churn` variable to be included as a supplementary variable, thereby seeing its relationship with other variables without including it in the original analysis. This is useful as most downstream analyses would try to predict `Churn`.
+Squared loading plots allow us to visualize qualitative and quantitative variables **together** in the new feature space. The implementation provided by the `PCAmixdata` package has an added benefit of allowing the `Churn` variable to be included as a supplementary variable, thereby seeing its relationship with other variables without including it in the original analysis. This is useful as most downstream analyses would try to predict `Churn`.
 
 As an aside, unlike correlation circles, this plot depicts only positive values on the x- and y-axis. According to the authors of the package, the coordinates are to be interpreted as measuring “the links (signless) between variables and principal components”. This may be interpreted as the coordinates of each variable being the absolute value its squared loading.
 </div>
 
-<div id="desc_cos2" class="container tab-pane fade" style='width: 520px; padding-left:10px; padding-right:20px;'>
+<div id="desc_cos2" class="container tab-pane fade" style='width: 520px; padding-left:10px; padding-right:20px; font-size:16px;'>
 <br>
 Interpretation of the squared loading plot is very similar to that of the correlation circle. We see several interesting things:
 
@@ -404,7 +404,7 @@ Interpretation of the squared loading plot is very similar to that of the correl
 
 </div>
 
-<div id="code_cos2" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right:20px;'>
+<div id="code_cos2" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right:20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
@@ -436,20 +436,22 @@ fviz_add(p, res.famd$var$coord.sup
 
 ### **Variable contribution** <br><br> Contributions of variables to principal dimensions {data-commentary-width=550}
 
-```{r, fig.width=6.5, fig.height=3, fig.align='center'}
+```{r, fig.width=7, fig.height=4, fig.align='center'}
 ## Import libraries
 library(FactoMineR)
 library(factoextra)
 library(gridExtra)
 
 ## Plot
-a <- fviz_contrib(res.famd, choice = "var", axes = 1, top = 10)
+a <- fviz_contrib(res.famd, 
+                  choice = "var", axes = 1, top = 10)
 
-b <- fviz_contrib(res.famd, choice = "var", axes = 2, top = 10)
+b <- fviz_contrib(res.famd, 
+                  choice = "var", axes = 2, top = 10)
 
 grid.arrange(a, b, nrow=1)
 
-fviz_contrib(res.famd, choice = "var", axes = 1:2, top = 15)
+#fviz_contrib(res.famd, choice = "var", axes = 1:2, top = 15)
 ```
 
 ***
@@ -475,7 +477,7 @@ fviz_contrib(res.famd, choice = "var", axes = 1:2, top = 15)
 
 <!-- Tab panes -->
 <div class="tab-content">
-<div id="background_contrib" class="container tab-pane active" style='width:520px;  padding-left:10px; padding-right: 20px;'>
+<div id="background_contrib" class="container tab-pane active" style='width:520px;  padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 Whereas factor loading and squared loading measure how well a given PD “describes” variation capture in a variable, **contribution** describes the converse, namely how much a variable accounts for the total variation captured by a given PD. 
 
@@ -483,7 +485,7 @@ It is important to compare the squared loading and contribution for each variabl
 
 </div>
 
-<div id="desc_contrib" class="container tab-pane" style='width:520px;  padding-left:10px; padding-right: 20px;'>
+<div id="desc_contrib" class="container tab-pane" style='width:520px;  padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 Top contributing variables to the first few PDs can provide insights into which variables underlie variations in the dataset, and may help with feature selection for downstream analyses. The red dashed line indicates the expected average contribution (100% contribution divided the total number of variables avaiable in the dataset). So variables meeting the cut-off would be considered as important in contributing to the PD.
 
@@ -492,7 +494,7 @@ From the variables that meet the cut-off, we can glean some insights into what a
 </div>
 
 
-<div id="code_contrib" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right: 20px;'>
+<div id="code_contrib" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
@@ -504,19 +506,13 @@ library(gridExtra)
 res.famd <- FAMD(df)
 
 ## Plots
-a <- fviz_contrib(res.famd, 
-                  choice = "var", 
-                  axes = 1)
+a <- fviz_contrib(res.famd, choice = "var", axes = 1)
 
-b <- fviz_contrib(res.famd, 
-                  choice = "var", 
-                  axes = 2)
+b <- fviz_contrib(res.famd, choice = "var", axes = 2)
 
 grid.arrange(a, b, nrow=1)
 
-fviz_contrib(res.famd, 
-             choice = "var", 
-             axes = 1:2)
+#fviz_contrib(res.famd, choice = "var", axes = 1:2)
 ```
 </div>
 </div>
@@ -524,7 +520,7 @@ fviz_contrib(res.famd,
 
 
 
-### **Level map** <br><br> More granular insights into relationships amongst variables {data-commentary-width=600}
+### **Level map** <br><br> More granular insights into relationships amongst variables {data-commentary-width=550}
 
 ```{r}
 ## Import libraries
@@ -578,7 +574,7 @@ fviz_mca_var(res.mca, col.var = "cos2",
 
 ***
 
-<div class="container" style='width:550px; padding-left: 10px; padding-right: 20px;'>
+<div class="container" style='width:530px; padding-left: 10px; padding-right: 20px;'>
 <!-- Nav tabs -->
 <ul class="nav nav-pills nav-justified" role="tablist" style='padding: 0px;'>
 
@@ -599,16 +595,16 @@ fviz_mca_var(res.mca, col.var = "cos2",
 <!-- Tab panes -->
 <div class="tab-content">
 
-<div id="background_level" class="container tab-pane active" style='width:540px; padding-left:10px; padding-right: 20px;'>
+<div id="background_level" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
-We can further visualize the relationships between possible values of variables in **level maps**. This allows us to get much more fine-grained insights, as for example "Senior Citizen" and "Not Senior Citizen" carry very different meanings, which are lost when lumped together into a single variable. 
+We can further visualize the relationships between possible values of variables in level maps. This allows us to get much more fine-grained insights, as for example "Senior Citizen" and "Not Senior Citizen" carry very different meanings, which are lost when lumped together into a single variable. 
 
 For continuous variables to be used in this analysis, they need to be discretized and made into "pseudo" categorical variables. In this case, as I am interested in getting the most informative value bins with respect to the outcome variable of interest, `Churn`, I used the supervised discretization function implemented by the `arulesCBA` package (see more about it [here](http://rpubs.com/nchelaru/eda)). 
 
 
 </div>
 
-<div id="desc_level" class="container tab-pane fade" style='width:540px; padding-left:10px; padding-right: 20px;'>
+<div id="desc_level" class="container tab-pane fade" style='width:520px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 There are lots of information in this plot! 
 
@@ -635,14 +631,12 @@ These are actionable insights to inform marketing campaigns and customer retenti
 </div>
 
 
-<div id="code_level" class="container tab-pane fade"  style='width:540px;  padding-left:10px; padding-right: 20px;'>
+<div id="code_level" class="container tab-pane fade"  style='width:520px;  padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
 library(FactoMineR)
 library(factoextra)
-library(plyr)
-library(dplyr)
 library(arulesCBA)
 
 ## Discretize "Tenure" with respect to "Churn"/"No Churn"
@@ -651,7 +645,7 @@ df$Binned_Tenure <- discretizeDF.supervised(Churn ~ .,
                                             method = 'mdlp')$Tenure
 
 ## MCA, with "Churn" set as the supplementary variable
-res.mca <- MCA(df,
+res.mca <- MCA(df, 
                quanti.sup = c(5, 18, 19),
                quali.sup = c(20))
 
@@ -725,7 +719,7 @@ plot(res.pcarot,
 <!-- Tab panes -->
 <div class="tab-content">
 
-<div id="desc_rotate" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px;'>
+<div id="desc_rotate" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 To further facilitate interpretation of the relationships between variables and PCs, additional rotation can be applied to PCs to result in high factor loadings for a few variables and low factor loadings for the rest. In other words, a small number of variables will become highly correlated with each PC. The most common form of rotation is varimax rotation, a generalized form of which is implemented in the `PCAmixdata` package for mixed data. To learn more, here is an excellet explanation on the [stats StackExchange](https://stats.stackexchange.com/questions/151653/what-is-the-intuitive-reason-behind-doing-rotations-in-factor-analysis-pca-how).
 
@@ -734,7 +728,7 @@ Here we see a slightly different version of the squared loading plot from before
 </div>
 
 
-<div id="code_rotate" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px;'>
+<div id="code_rotate" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import library
@@ -797,7 +791,7 @@ fviz_cluster(res.hcpc, geom = "point", main = "Factor map") +
 <!-- Tab panes -->
 <div class="tab-content">
 
-<div id="desc_hc" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px;'>
+<div id="desc_hc" class="container tab-pane active" style='width:470px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 As principal components (PCs) are essentially “synthetic” variables that summarize the most important sources of variations in the data, they are very useful in reducing noise and redundancy in a dataset that in turn helps to reveal its inherent structure. One way to take this one step further is by hierarchically clustering the individual data points by their "position" in the principal dimension feature space. The implementation by the `FactoMineR` package uses the Ward's criterion to carry out hierarchical clustering.
 
@@ -807,7 +801,7 @@ In the next slide, we will generate some summary visualizations to see how the c
 
 </div>
 
-<div id="code_hc" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px;'>
+<div id="code_hc" class="container tab-pane fade"  style='width:470px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
@@ -874,9 +868,9 @@ hash_encode_url <- function(url){
 ## Pass list of figures to SlickR
 s.in <- sapply(plotsToSVG, function(sv){hash_encode_url(paste0("data:image/svg+xml;utf8,",as.character(sv)))})
 
-Sys.sleep(4)
+#Sys.sleep(4)
 
-slickR(s.in, slideId = 'ex4', slickOpts = list(dots=F, arrows=F, autoplay=T, adaptiveWidth=TRUE, adaptiveHeight=TRUE), height='525px')
+slickR(s.in, slideId = 'ex4', slickOpts = list(dots=T, arrows=F, autoplay=T, adaptiveWidth=TRUE, adaptiveHeight=TRUE), height='525px')
 
 ```
 
@@ -900,7 +894,7 @@ slickR(s.in, slideId = 'ex4', slickOpts = list(dots=F, arrows=F, autoplay=T, ada
 <!-- Tab panes -->
 <div class="tab-content">
 
-<div id="desc_slider" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right: 20px;'>
+<div id="desc_slider" class="container tab-pane active" style='width:520px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 The automated exploratory data analysis package `autoEDA` is very useful for generating summary visualizations for each variable in a given dataset with respect to a target variable of interest. 
 
@@ -910,7 +904,7 @@ As a side note, here you see a slider generated using the `slickR` package, whic
 
 </div>
 
-<div id="code_slider" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right: 20px;'>
+<div id="code_slider" class="container tab-pane fade"  style='width:520px; padding-left:10px; padding-right: 20px; font-size:16px;'>
 <br>
 ```{r, eval=F, echo=T}
 ## Import libraries
